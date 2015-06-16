@@ -1,5 +1,27 @@
 use std::ops::Index;
 
+//#![feature(macro_rules)]
+
+macro_rules! obvious_signal_impl {
+    (impl $type_: ident) => {
+
+      impl <T> Signal<$type_<T>> for $type_<T> {}
+
+      //impl <T> Index<<$type_<T> as abs::Signal>::pointType> for $type_<T> {
+      //  type Output = T;
+      //  fn index<'a>(&'a self, _index: <$type_<T> as abs::Signal>::pointType) -> &'a T {
+      //    &self.arr[_index.x]
+      //  }
+      //}
+    }
+}
+
+macro_rules! signal_point_type {
+  ($var:ident from $type_:ty) => (
+    let mut $var : <$type_ as abs::Signal>::pointType;
+  )
+}
+
 enum DIM
 {
   ONE,
@@ -21,6 +43,17 @@ struct Point1D
 impl Point for Point1D
 {
   type IndexingType = usize;
+}
+impl Point1D
+{
+  //fn new(x_:usize) -> Point1D
+  //{
+  //  Point1D{x:x_}
+  //}
+  fn new() -> Point1D
+  {
+    Point1D{x:0}
+  }
 }
 
 
@@ -60,24 +93,22 @@ impl <T> abs::Signal for Signal1D<T>
 {
   type valueType = T;
   type pointType = Point1D;
-  //type DIM = DIM::ONE;
 }
+obvious_signal_impl! {impl Signal1D }
 
-impl <T> Signal<Signal1D<T>> for Signal1D<T> {}
-
-impl <T> Index<<Signal1D<T> as abs::Signal>::pointType> for Signal1D<T>
-{
+impl <T> Index<Point1D> for Signal1D<T> {
   type Output = T;
-   fn index<'a>(&'a self, _index: Point1D) -> &'a T
-   {
-        &self.arr[_index.x]
-   }
+  fn index<'a>(&'a self, _index: <Signal1D<T> as abs::Signal>::pointType) -> &'a T {
+    &self.arr[_index.x]
+  }
 }
+
 
 fn main()
 {
   let a :Signal1D<i32> = Signal1D::new(0, 10);
-  let b = Point1D{x:0};
+  //let b :<Signal1D<i32> as abs::Signal>::pointType = <Signal1D<i32> as abs::Signal>::pointType::new(0);
+  signal_point_type!(b from Signal1D<i32>);
 
   println!("{}", a[b]);
   
